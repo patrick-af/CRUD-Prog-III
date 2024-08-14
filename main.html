@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de RH</title>
+    <link rel="icon" href="rh.png" type="image/png">
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="main.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>  
+
+    <!-- cria o menu no lado esquerdo da tela -->
+    <div class="BarraOpcoes"> 
+        <img src="Logo.png"  alt="Logo da Empresa" class="Imagem_Logo">
+        <button id="btnNovo">Novo cadastro</button>
+        <button class="visualizarBtn" id="btnBuscarScr">Realizar Buscar</button>
+        <button class="bntFechar"><a href="index.html">Sair</button></a>
+    </div>
+
+    <main>
+
+        <!-- cria a tabela que exibe os funcionarios cadastrados no sistema-->
+        <div id="exibeFuncionarios" class="mostra"> 
+            <table id="tblFun" border="1" cellpadding="10">
+               
+                <tr>
+                    <th>Nome</th>          
+                    <th>CPF</th>           
+                    <th>Salario</th>           
+                    <th>Função</th>
+                    <th>Departamento</th>
+                    <th>CEP</th>
+                    <th>Logradouro</th>
+                    <th>Numero</th> 
+                    <th>Bairro</th>
+                    <th>Cidade</th>
+                    <th>UF</th>
+                    <th colspan="2">Ações</th>                    
+                </tr>        
+            </table>
+        </div>
+
+
+        <!-- cria o formulario para cadastro de funcionarios e onde são exibidas
+         as informacoes ao realizar uma busca por um cpf -->
+
+        <div id="cadastraFuncionario" class="oculta">   
+            <h2 class="TextCadastroFun">Cadastro de Funcionários</h2>
+            <input type="text" id="nome_fun" placeholder="Nome:">
+            <input type="text" id="cpf_fun" placeholder="CPF" maxlength="11">
+            <input type="text" id="salario_fun" placeholder="Salário">
+            <input type="text" id="funcao_fun" placeholder="Função">
+            <input type="text" id="dpto_fun" placeholder="Departamento">
+
+            <div class="apiCorreio">
+                <input type="text" id="cep_fun" placeholder="CEP" maxlength="8"> <!-- fornece o cep para a api de consultar cep -->
+                <button class="api" id="btnPesquisaCep">Pesquisar</button>
+            </div>
+
+            <input type="text" id="logradouro_fun" placeholder="Lougradouro">
+            <input type="text" id="numero_fun" placeholder="Numero">
+            <input type="text" id="bairro_fun" placeholder="Bairro">
+            <input type="text" id="cidade_fun" placeholder="Cidade">
+            <input type="text" id="uf_fun" placeholder="UF" maxlength="2">
+            <br/>
+            <br/>
+            <button type="button" class="btnInicio" onclick="cadastrar()">Cadastrar</button> <!--chama a funcao de cadastro-->
+            <button type="reset">Limpar Formulário</button>
+            <button type="button" class="btnInicio">Voltar</button>
+        </div>
+
+
+        <!-- cria a tela para edição de funcionarios-->
+
+        <div id="editaFuncionario" class="oculta">
+            <h2 class="TexteditaFun">Edição de Funcionários</h2>
+            <input type="hidden" id="edId_fun"> <!-- contem o id do funcionario no banco de dados para edicao, porem nao exibe ao usuario -->
+            <input type="text" id="edNome_fun" placeholder="Nome:">
+            <input type="text" id="edCpf_fun" placeholder="CPF" maxlength="11">
+            <input type="text" id="edSalario_fun" placeholder="Salário">
+            <input type="text" id="edFuncao_fun" placeholder="Função">
+            <input type="text" id="edDpto_fun" placeholder="Departamento">
+
+            <div class="apiCorreio">
+                <input type="text" id="edCep_fun" placeholder="CEP" maxlength="8"> <!-- chama a api de pesquisa de cep-->
+                <button class="ed_api" id="btnedPesquisaCep">Pesquisar</button> 
+            </div>
+
+            <input type="text" id="edLogradouro_fun" placeholder="Lougradouro">
+            <input type="text" id="edNumero_fun" placeholder="Numero">
+            <input type="text" id="edBairro_fun" placeholder="Bairro">
+            <input type="text" id="edCidade_fun" placeholder="Cidade">
+            <input type="text" id="edUf_fun" placeholder="UF" maxlength="2">
+            <br/>
+            <br/>
+            <button type="button" class="btnInicio" onclick="salvar()">Salvar</button> <!-- chama a funcao de salvar a edicao-->
+            <button type="reset">Limpar Formulário</button>
+            <button type="button" class="btnInicio">Voltar</button>
+        </div>
+
+
+        <!-- cria uma pequena tela de pesquisa de funcionario pelo CPF-->
+
+        <div id ="buscarFuncionario" class="oculta">
+          
+            <input type="text" id="cpfFunBusca" placeholder="Insira o CPF">
+            <button id="btnBuscaFun" onclick="busca()">Buscar</button>    <!-- realiza a busca chamando a funcao de buscar-->
+            <button type="button" onclick="tudo()">Voltar</button>  <!-- volta a tela inicial-->
+
+        </div>
+
+
+
+    </main>
+    <script src="main.js"></script>
+</body>
+
+
+
+
+<script>   
+
+    $("#btnNovo").on("click", function() {
+        
+        $("#exibeFuncionarios").attr("class", "oculta");
+        $("#cadastraFuncionario").attr("class", "mostra");
+        $("#editaFuncionario").attr("class", "oculta");
+        $("#buscarFuncionario").attr("class", "oculta");
+
+    });
+
+    $(".btnInicio").on("click", function() {
+      
+      $("#exibeFuncionarios").attr("class", "mostra");
+      $("#cadastraFuncionario").attr("class", "oculta");
+      $("#editaFuncionario").attr("class", "oculta");            // essas 3 requisicoes ajax sao para manusear a exibição ou nao
+      $("#buscarFuncionario").attr("class", "oculta");           // das telas de cadsatro, edicao e busca
+      $("#cadFun").trigger("reset");
+      $("#editaFun").trigger("reset");
+
+  });
+
+
+    $("#btnBuscarScr").on("click", function() {
+      
+      $("#exibeFuncionarios").attr("class", "oculta");
+      $("#cadastraFuncionario").attr("class", "oculta");
+      $("#editaFuncionario").attr("class", "oculta");
+      $("#buscarFuncionario").attr("class", "mostra");
+
+  });
+
+
+  //funcao de cadastrar um funcionario ao banco de dados, por meio de requisicoes ajax
+
+function cadastrar() { 
+        var nome_fun = $("#nome_fun").val();
+        var cpf_fun = $("#cpf_fun").val();
+        var salario_fun = $("#salario_fun").val();
+        var funcao_fun = $("#funcao_fun").val();
+        var dpto_fun = $("#dpto_fun").val();
+        var cep_fun = $("#cep_fun").val();
+        var logradouro_fun = $("#logradouro_fun").val();
+        var numero_fun = $("#numero_fun").val();
+        var bairro_fun = $("#bairro_fun").val();
+        var cidade_fun = $("#cidade_fun").val();
+        var uf_fun = $("#uf_fun").val();
+
+        $.ajax({
+            url: "http://localhost:5000/api/funcionarios",  //realiza a requisicao ajax pelo metodo POST, para inserir um novo valor ao BD
+            method: "POST",
+            data: {
+                nome_fun : nome_fun,
+                cpf_fun : cpf_fun,
+                salario_fun : salario_fun,
+                funcao_fun : funcao_fun,
+                dpto_fun : dpto_fun,
+                cep_fun : cep_fun,
+                logradouro_fun : logradouro_fun,
+                numero_fun : numero_fun,
+                bairro_fun : bairro_fun,
+                cidade_fun : cidade_fun,
+                uf_fun : uf_fun
+            },
+           
+        }).done (function(mensagem){
+            tudo();
+            alert ("Cadastrado com sucesso!");  // mensagem de sucesso
+
+        }).fail (function (jqXHR, textStatus) {
+              
+            alert( "Falha da requisição: " + textStatus ); //mensagem de erro, caso ocorra por qualquer motivo
+            
+        });    
+
+    };
+
+
+// funcao para edicao do cadastro de um usuario 
+
+function editar(id) {
+
+$("#exibeFuncionarios").attr("class", "oculta");
+$("#cadastraFuncionario").attr("class", "oculta");   //requisicoes pelos ids das divs, para manusear as telas 
+$("#editaFuncionario").attr("class", "mostra");     
+$("#buscarFuncionario").attr("class", "oculta");
+
+// Buscando dados do funcionario e preenchendo form pelo metodo GET
+var request = $.ajax({
+        url: "http://localhost:5000/api/funcionarios/"+id,
+        method: "GET",
+    
+    }).done(function(mensagem) {   //funcao para preencher a tabela com os dados informados
+       
+        var id = mensagem.id_fun;
+        var nome = mensagem.nome_fun;
+        var cpf = mensagem.cpf_fun;
+        var salario = mensagem.salario_fun;
+        var funcao = mensagem.funcao_fun;
+        var dpto = mensagem.dpto_fun;
+        var cep = mensagem.cep_fun;
+        var logradouro = mensagem.logradouro_fun;
+        var numero = mensagem.numero_fun;
+        var bairro = mensagem.bairro_fun;
+        var cidade = mensagem.cidade_fun;
+        var uf = mensagem.uf_fun;
+                          
+        $('#edNome_fun').val(nome);
+        $('#edCpf_fun').val(cpf);
+        $('#edSalario_fun').val(salario);
+        $('#edFuncao_fun').val(funcao);
+        $('#edDpto_fun').val(dpto);
+        $('#edCep_fun').val(cep);
+        $('#edLogradouro_fun').val(logradouro);
+        $('#edNumero_fun').val(numero);
+        $('#edBairro_fun').val(bairro);
+        $('#edCidade_fun').val(cidade);
+        $('#edUf_fun').val(uf);
+        $('#edId_fun').val(id);
+
+
+    }).fail (function (jqXHR, textStatus) {
+        
+        alert( "Falha da requisição: " + textStatus ); //mensagem padrao em casoi de erro
+        
+    });    
+}
+
+
+
+
+//funcao para exclusao do cadastro de algum funcionario, usando ajax por meio do metodo DELETE
+
+function excluir(id, nome) {
+        if (confirm("Deseja realmente excluir o funcionário " + nome + "?")) {
+            $.ajax({
+                url: "http://localhost:5000/api/funcionarios/" + id,
+                method: "DELETE"
+            }).done(function(mensagem) {
+                tudo();
+                alert("Excluído com sucesso!");
+            }).fail(function(jqXHR, textStatus) {
+                alert("Falha da requisição: " + textStatus);
+            });
+        }
+    }
+
+
+
+//funcao para inserir e salvar um novo usuario ao banco de dados
+
+function salvar() {
+
+        var id_fun = $("#edId_fun").val();
+        var nome_fun = $("#edNome_fun").val();
+        var cpf_fun = $("#edCpf_fun").val();
+        var salario_fun = $("#edSalario_fun").val();
+        var funcao_fun = $("#edFuncao_fun").val();
+        var dpto_fun = $("#edDpto_fun").val();
+        var cep_fun = $("#edCep_fun").val();
+        var logradouro_fun = $("#edLogradouro_fun").val();
+        var numero_fun = $("#edNumero_fun").val();
+        var bairro_fun = $("#edBairro_fun").val();
+        var cidade_fun = $("#edCidade_fun").val();
+        var uf_fun = $("#edUf_fun").val();
+
+
+        $.ajax({
+            url: "http://localhost:5000/api/funcionarios/"+id_fun, //requisicao ajax para a inercao de um novo funcionario pelo metodo PUT
+            method: "PUT",
+            data: {
+                id_fun : id_fun,
+                nome_fun : nome_fun,
+                cpf_fun : cpf_fun,
+                salario_fun : salario_fun,
+                funcao_fun : funcao_fun,
+                dpto_fun : dpto_fun,
+                cep_fun : cep_fun,
+                logradouro_fun : logradouro_fun,
+                numero_fun : numero_fun,
+                bairro_fun : bairro_fun,
+                cidade_fun : cidade_fun,
+                uf_fun : uf_fun
+            },
+           
+        }).done (function(mensagem){
+            tudo();
+            alert ("Salvo com sucesso!");  
+
+        }).fail (function (jqXHR, textStatus) {
+              
+            alert( "Falha da requisição: " + textStatus );
+            
+        });    
+
+    };
+
+
+
+
+//funcao principal, onde sao exibidos todos os funcionarios cadastrados
+
+function tudo() {
+
+    $("#exibeFuncionarios").attr("class", "mostra");
+    $("#cadastraFuncionario").attr("class", "oculta");
+    $("#editaFuncionario").attr("class", "oculta");   
+    $("#buscarFuncionario").attr("class", "oculta");
+
+        // Buscando todos os funcionarios e mostrando na tabela   
+        var request = $.ajax({
+                url: "http://localhost:5000/api/funcionarios", //requisicao GET para exibir os funcionarios
+                method: "GET",
+            
+            }).done(function(mensagem) {
+                var tableBody = $("#tblFun tbody");
+
+                tableBody.children( 'tr:not(:first)' ).remove();  
+
+                mensagem.forEach(elemento => {
+                    var id_fun = elemento.id_fun;
+                    var nome = elemento.nome_fun;
+                    var cpf = elemento.cpf_fun;
+                    var salario = elemento.salario_fun;
+                    var funcao = elemento.funcao_fun;
+                    var dpto = elemento.dpto_fun;
+                    var cep = elemento.cep_fun;
+                    var logradouro = elemento.logradouro_fun;   //funcao para preencher a tabela com os dados coletados
+                    var numero = elemento.numero_fun;
+                    var bairro = elemento.bairro_fun;
+                    var cidade = elemento.cidade_fun;
+                    var uf = elemento.uf_fun;
+
+                    var row = "<tr>";
+                    row += "<td>" + nome + "</td>";
+                    row += "<td>" + cpf + "</td>";
+                    row += "<td>" + salario + "</td>";
+                    row += "<td>" + funcao + "</td>";
+                    row += "<td>" + dpto + "</td>";
+                    row += "<td>" + cep + "</td>";
+                    row += "<td>" + logradouro + "</td>";
+                    row += "<td>" + numero + "</td>";
+                    row += "<td>" + bairro + "</td>";
+                    row += "<td>" + cidade + "</td>";
+                    row += "<td>" + uf + "</td>";
+                    row += "<td><button type='button' class='btnEditar' onClick='editar(" + id_fun + ")'>Editar</button></td>";
+                    row += "<td><button type='button' id='btnDeleta' onClick='excluir(" + id_fun + ", \"" + nome + "\")'>Excluir</button></td>";
+                    row += "</tr>";
+
+                    tableBody.append(row);
+                });
+
+            }).fail (function (jqXHR, textStatus) {
+                
+                alert( "Falha da requisição: " + textStatus );
+                
+            });    
+    }
+
+
+
+
+        //funcao para carregar os usuarios cadastrados assim que a pagina for carregada    
+    $(window).on("load", function () {  
+
+        tudo();   
+    });
+
+
+
+    //funcao de busca pelo CPF
+
+    function busca (acao) {
+        if(acao == 'limpa') {
+            tudo();
+            $('#cpfFunBusca').val('');  //trata o dado caso o usuario deixe em branco ou nao seja encontrado
+        } else {
+            var cpf = $("#cpfFunBusca").val();
+
+            if(cpf==null || cpf=="") alert ("CPF não informado");
+
+            else {
+                var request = $.ajax({
+                    url: "http://localhost:5000/api/funcionarios/busca/"+cpf,  //requisicao ajax para buscar o cpf informado
+                    method: "GET",
+                    statusCode: {
+                        404: function() {
+                            alert( "CPF Não encontrado" );
+                        }
+                    }
+                
+                }).done (function(mensagem){
+
+                    $("#exibeFuncionarios").attr("class", "mostra");
+                    var tableBody = $("#tblFun tbody");
+
+                    tableBody.children( 'tr:not(:first)' ).remove();
+
+                    mensagem.forEach(elemento => {     //funcao para preencher a tabela com os dados informados
+                        var id_fun = elemento.id_fun;
+                        var nome = elemento.nome_fun;
+                        var cpf = elemento.cpf_fun;
+                        var salario = elemento.salario_fun;
+                        var funcao = elemento.funcao_fun;
+                        var dpto = elemento.dpto_fun;
+                        var cep = elemento.cep_fun;
+                        var logradouro = elemento.logradouro_fun;
+                        var numero = elemento.numero_fun;
+                        var bairro = elemento.bairro_fun;
+                        var cidade = elemento.cidade_fun;
+                        var uf = elemento.uf_fun;
+
+                        var row = "<tr>";
+                        row += "<td>" + nome + "</td>";
+                        row += "<td>" + cpf + "</td>";
+                        row += "<td>" + salario + "</td>";
+                        row += "<td>" + funcao + "</td>";
+                        row += "<td>" + dpto + "</td>";
+                        row += "<td>" + cep + "</td>";
+                        row += "<td>" + logradouro + "</td>";
+                        row += "<td>" + numero + "</td>";
+                        row += "<td>" + bairro + "</td>";
+                        row += "<td>" + cidade + "</td>";
+                        row += "<td>" + uf + "</td>";
+                        row += "<td><button type='button' class='btnEditar' onClick='editar(" + id_fun + ")'>Editar</button></td>";
+                        row += "<td><button type='button' onClick='excluir(" + id_fun + ")'>Excluir</button></td>";
+                        row += "</tr>";
+
+                        tableBody.append(row);
+                    });  
+                });    
+            }
+        }
+    }
+
+</script>
+
+</html>
